@@ -54,7 +54,22 @@ type Opcode byte
 // 指令集的編號是iota遞增
 const (
 	OpConstant Opcode = iota
+
 	OpAdd
+	OpPop
+	OpSub
+	OpMul
+	OpDiv
+
+	OpTrue
+	OpFalse
+
+	OpEqual
+	OpNotEqual
+	OpGreaterThan
+
+	OpMinus
+	OpBang
 )
 
 // definition則是有 name + operandWith int陣列
@@ -65,8 +80,19 @@ type Definition struct {
 
 // 這個則是opcode進去 取得definition object
 var definitions = map[Opcode]*Definition{
-	OpConstant: {"OpConstant", []int{2}},
-	OpAdd:      {"OpAdd", []int{}},
+	OpConstant:    {"OpConstant", []int{2}},
+	OpAdd:         {"OpAdd", []int{}},         // +
+	OpPop:         {"OpPop", []int{}},         // poo stack
+	OpSub:         {"OpSub", []int{}},         // -
+	OpMul:         {"OpMul", []int{}},         // *
+	OpDiv:         {"OpDiv", []int{}},         // /
+	OpTrue:        {"OpTrue", []int{}},        // true
+	OpFalse:       {"OpFalse", []int{}},       // false
+	OpEqual:       {"OpEqual", []int{}},       // ==
+	OpNotEqual:    {"OpNotEqual", []int{}},    // !=
+	OpGreaterThan: {"OpGreaterThan", []int{}}, // > (以及被重寫過的 <)
+	OpMinus:       {"OpMinus", []int{}},       // - 前綴
+	OpBang:        {"OpBang", []int{}},        // !
 }
 
 // 查definition map 看有沒有在裡面

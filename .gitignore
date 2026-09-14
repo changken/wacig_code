@@ -32,4 +32,7 @@ go.work.sum
 # .vscode/
 
 # 執行檔
-monkey
+bin/
+**/bin/
+**/monkey/monkey
+/monkey
