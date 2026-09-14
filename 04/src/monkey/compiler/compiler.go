@@ -119,7 +119,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		//發出虛假的偏移量的OnJumpNotTruthy
-		c.emit(code.OnJumpNotTruthy, 9999)
+		jumpNotTruthyPos := c.emit(code.OnJumpNotTruthy, 9999)
 
 		err = c.Compile(node.Consequence)
 		if err != nil {
@@ -129,6 +129,34 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if c.lastInstructionIsPop() {
 			c.removeLastPop()
 		}
+
+		//發出帶有虛擬偏移量的onjump
+		jumpPos := c.emit(code.OpJump, 9999)
+
+		afterConsequencePos := len(c.instructions)
+		//將jumpNotTruthPos 改成 afterConsequencePos
+		c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+
+		//如果沒有else區塊
+		if node.Alternative == nil {
+			c.emit(code.OpNull)
+		} else {
+			//afterConsequencePos := len(c.instructions)
+			//c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+
+			err := c.Compile(node.Alternative)
+			if err != nil {
+				return err
+			}
+
+			if c.lastInstructionIsPop() {
+				c.removeLastPop()
+			}
+
+		}
+
+		afterAlternativePos := len(c.instructions)
+		c.changeOperand(jumpPos, afterAlternativePos)
 
 	case *ast.BlockStatement:
 		for _, s := range node.Statements {

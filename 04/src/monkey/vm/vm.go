@@ -11,6 +11,7 @@ const StackSize = 2048
 
 var True = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
+var Null = &object.Null{}
 
 type VM struct {
 	constants    []object.Object
@@ -83,9 +84,36 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpJump:
+			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip = pos - 1
+		case code.OnJumpNotTruthy:
+			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip += 2
+
+			condition := vm.pop()
+			if !isTruthy(condition) {
+				ip = pos - 1
+			}
+		case code.OpNull:
+			err := vm.push(Null)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
+}
+
+func isTruthy(obj object.Object) bool {
+	switch obj := obj.(type) {
+	case *object.Boolean:
+		return obj.Value
+	case *object.Null: //如果condition遇到null 就要跳
+		return false
+	default:
+		return true
+	}
 }
 
 func (vm *VM) push(o object.Object) error {
@@ -197,7 +225,7 @@ func nativeBoolToBooleanObject(input bool) *object.Boolean {
 	return False
 }
 
-// 前綴 !，true -> false, false -> true
+// 前綴 !，true -> false, false -> true, null 反向-> true
 func (vm *VM) excuteBangOperator() error {
 	operand := vm.pop()
 
@@ -205,6 +233,8 @@ func (vm *VM) excuteBangOperator() error {
 	case True:
 		return vm.push(False)
 	case False:
+		return vm.push(True)
+	case Null:
 		return vm.push(True)
 	default:
 		return vm.push(False)

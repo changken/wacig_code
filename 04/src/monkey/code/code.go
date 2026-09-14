@@ -73,6 +73,8 @@ const (
 
 	OnJumpNotTruthy
 	OpJump
+
+	OpNull
 )
 
 // definition則是有 name + operandWith int陣列
@@ -98,6 +100,7 @@ var definitions = map[Opcode]*Definition{
 	OpBang:          {"OpBang", []int{}},           // !
 	OnJumpNotTruthy: {"OpJumpNotTruthy", []int{2}}, // if
 	OpJump:          {"OpJump", []int{2}},          // else
+	OpNull:          {"OpNull", []int{}},           // Null
 }
 
 // 查definition map 看有沒有在裡面
