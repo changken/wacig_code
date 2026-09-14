@@ -67,6 +67,9 @@ const (
 	OpEqual
 	OpNotEqual
 	OpGreaterThan
+
+	OpMinus
+	OpBang
 )
 
 // definition則是有 name + operandWith int陣列
@@ -88,6 +91,8 @@ var definitions = map[Opcode]*Definition{
 	OpEqual:       {"OpEqual", []int{}},       // ==
 	OpNotEqual:    {"OpNotEqual", []int{}},    // !=
 	OpGreaterThan: {"OpGreaterThan", []int{}}, // > (以及被重寫過的 <)
+	OpMinus:       {"OpMinus", []int{}},       // - 前綴
+	OpBang:        {"OpBang", []int{}},        // !
 }
 
 // 查definition map 看有沒有在裡面
