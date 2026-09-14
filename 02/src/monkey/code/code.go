@@ -39,7 +39,9 @@ func (int *Instructions) fmtInstruction(def *Definition, operands []int) string 
 	}
 
 	switch operandCount {
-	case 1:
+	case 0: //OpAdd
+		return def.Name
+	case 1: //OpConstant
 		return fmt.Sprintf("%s %d", def.Name, operands[0])
 	}
 
@@ -52,6 +54,7 @@ type Opcode byte
 // 指令集的編號是iota遞增
 const (
 	OpConstant Opcode = iota
+	OpAdd
 )
 
 // definition則是有 name + operandWith int陣列
@@ -63,6 +66,7 @@ type Definition struct {
 // 這個則是opcode進去 取得definition object
 var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}},
+	OpAdd:      {"OpAdd", []int{}},
 }
 
 // 查definition map 看有沒有在裡面
