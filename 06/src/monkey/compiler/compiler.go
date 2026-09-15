@@ -232,6 +232,17 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		//發出opHash, 注意key value 數量是偶數
 		c.emit(code.OpHash, len(node.Pairs)*2)
+	case *ast.IndexExpression:
+		err := c.Compile(node.Left)
+		if err != nil {
+			return err
+		}
+		err = c.Compile(node.Index)
+		if err != nil {
+			return err
+		}
+
+		c.emit(code.OpIndex)
 	}
 
 	return nil

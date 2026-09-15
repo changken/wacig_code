@@ -81,6 +81,7 @@ const (
 
 	OpArray
 	OpHash
+	OpIndex
 )
 
 // definition則是有 name + operandWith int陣列
@@ -111,6 +112,7 @@ var definitions = map[Opcode]*Definition{
 	OpSetGlobal:     {"OpSetGlobal", []int{2}},     // set global
 	OpArray:         {"OpArray", []int{2}},         // array[]
 	OpHash:          {"OpHash", []int{2}},          // {} hashmap
+	OpIndex:         {"OpIndex", []int{}},          // {1:2}[1], [1, 2][0]
 }
 
 // 查definition map 看有沒有在裡面

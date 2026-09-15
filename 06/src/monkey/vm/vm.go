@@ -136,6 +136,28 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpHash:
+			numElements := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip += 2
+
+			//取那一段指令到buildhash
+			hash, err := vm.buildHash(vm.sp-numElements, vm.sp)
+			if err != nil {
+				return err
+			}
+			vm.sp = vm.sp - numElements
+			err = vm.push(hash)
+			if err != nil {
+				return err
+			}
+		case code.OpIndex:
+			index := vm.pop()
+			left := vm.pop()
+
+			err := vm.executeIndexExpression(left, index)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -151,6 +173,28 @@ func (vm *VM) buildArray(startIndex, endIndex int) object.Object {
 	}
 
 	return &object.Array{Elements: elements}
+}
+
+func (vm *VM) buildHash(startIndex, endIndex int) (object.Object, error) {
+	//用map來存取hash key
+	hashedPairs := make(map[object.HashKey]object.HashPair)
+
+	for i := startIndex; i < endIndex; i += 2 {
+		//key 取 i下標, value 取i+1下標
+		key := vm.stack[i]
+		value := vm.stack[i+1]
+
+		//建立key pair
+		pair := object.HashPair{Key: key, Value: value}
+		hashKey, ok := key.(object.Hashable)
+		if !ok {
+			return nil, fmt.Errorf("unusable as hash key: %s", key.Type())
+		}
+
+		hashedPairs[hashKey.HashKey()] = pair
+	}
+
+	return &object.Hash{Pairs: hashedPairs}, nil
 }
 
 func isTruthy(obj object.Object) bool {
@@ -318,4 +362,44 @@ func (vm *VM) excuteMinusOperator() error {
 	value := operand.(*object.Integer).Value
 
 	return vm.push(&object.Integer{Value: -value})
+}
+
+func (vm *VM) executeIndexExpression(left, index object.Object) error {
+	switch {
+	case left.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
+		return vm.executeArrayIndex(left, index)
+	case left.Type() == object.HASH_OBJ:
+		return vm.executeHashIndex(left, index)
+	default:
+		return fmt.Errorf("index operator not supported: %s", left.Type())
+	}
+}
+
+func (vm *VM) executeArrayIndex(array, index object.Object) error {
+	arrayObject := array.(*object.Array)
+	i := index.(*object.Integer).Value
+	max := int64(len(arrayObject.Elements) - 1)
+
+	//檢查index範圍
+	if i < 0 || i > max {
+		return vm.push(Null)
+	}
+
+	return vm.push(arrayObject.Elements[i])
+}
+
+func (vm *VM) executeHashIndex(hash, index object.Object) error {
+	hashObject := hash.(*object.Hash)
+
+	key, ok := index.(object.Hashable)
+	if !ok {
+		return fmt.Errorf("unusable as hash key: %s", index.Type())
+	}
+
+	pair, ok := hashObject.Pairs[key.HashKey()]
+	if !ok {
+		return vm.push(Null)
+	}
+
+	return vm.push(pair.Value)
 }
